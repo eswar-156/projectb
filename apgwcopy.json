@@ -1,0 +1,256 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vnet-name": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        },
+        "subnet1name": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        },
+        
+        "addressprefix": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        },
+        "sub1addressprefix": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        
+        
+        },
+        "location-name": {
+            "type": "string",
+            "metadata": {
+                "description": "description"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+    {
+        "name": "[parameters('vnet-name')]",
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2020-11-01",
+        "location": "[parameters('location-name')]",
+        "tags": {
+            "displayName": "[parameters('vnet-name')]"
+        },
+        "properties": {
+            "addressSpace": {
+                "addressPrefixes": [
+                    "[parameters('addressprefix')]"
+                ]
+            },
+            "subnets": [
+                {
+                    "name": "[parameters('subnet1name')]",
+                    "properties": {
+                        "addressPrefix": "[parameters('sub1addressprefix')]"
+                    }
+                }
+               
+            ]
+        }
+    },
+    {
+        "name": "piprandom30635042",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2020-11-01",
+        "location": "[parameters('location-name')]",
+        "tags": {
+            "displayName": "puppopspip"
+        },
+        "sku": {
+            "name": "Standard",
+            "tier": "Regional"
+        },
+        "properties": {
+            "publicIPAllocationMethod": "static",
+             "publicIPAddressVersion": "IPv4",
+             
+            "dnsSettings": {
+                "domainNameLabel": "pippsp520706dns156"
+            }
+        }
+    },
+     {
+            "name": "appservice102930",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2020-12-01",
+            "location": "[parameters('location-name')]",
+            "sku": {
+                "name": "S1",
+                
+                "capacity": 1
+            },
+            "properties": {
+                "name": "appservice102930"
+            }
+        },
+        {
+            "name": "webapptest50392652",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2020-12-01",
+            "location": "[parameters('location-name')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms','appservice102930')]"
+            ],
+            "properties": {
+                "name": "webapptest50392652",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appservice102930')]"
+            }
+          
+        },
+    {
+        "type": "Microsoft.Network/applicationGateways",
+        "apiVersion": "2020-11-01",
+        "name": "apgwtest156",
+        "location": "[parameters('location-name')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet-name'))]",
+            "[resourceId('Microsoft.Network/publicIPAddresses', 'piprandom30635042')]"
+        ],
+        "properties": {
+            "sku": {
+                "name": "WAF_v2",
+                "tier": "WAF_v2",
+                "capacity": 2
+            },
+            "gatewayIPConfigurations": [
+                {
+                    "name": "appGatewayIpConfig",
+                    "properties": {
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet-name'), parameters('subnet1name'))]"
+                        }
+                    }
+                }
+            ],
+            "frontendIPConfigurations": [
+                {
+                    "name": "appGatewayFrontendIP",
+                    "properties": {
+                        "PublicIPAddress": {
+                            "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'piprandom30635042')]"
+                        }
+                    }
+                }
+            ],
+            "frontendPorts": [
+                {
+                    "name": "appGatewayFrontendPort",
+                    "properties": {
+                        "Port": 80
+                    }
+                }
+            ],
+            "backendAddressPools": [
+                {
+                    "name": "appGatewayBackendPool",
+                    "properties": {
+                        "backendAddresses": [
+                            {
+                                "fqdn": "webapptest50392652.vecboss.com"
+                                
+                            }
+                        ]
+                    }
+                }
+            ],
+            "backendHttpSettingsCollection": [
+                {
+                    "name": "appGatewayBackendHttpSettings",
+                    "properties": {
+                        "Port": 80,
+                        "Protocol": "Http",
+                        "CookieBasedAffinity": "Disabled",
+                            "pickHostNameFromBackendAddress": true,
+                            "affinityCookieName": "ApplicationGatewayAffinity",
+                        
+                            
+                            "requestTimeout": 20
+                    }
+                }
+            ],
+            "httpListeners": [
+                {
+                    "name": "appGatewayHttpListener",
+                    "properties": {
+                        "FrontendIPConfiguration": {
+                            "Id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'apgwtest156', 'appGatewayFrontendIP')]"
+                        },
+                        "FrontendPort": {
+                            "Id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts',  'apgwtest156', 'appGatewayFrontendPort')]"
+                        },
+                        "Protocol": "Http",
+                         "hostNames": [],
+                            "requireServerNameIndication": false
+                        
+                        //"SslCertificate": null
+                    }
+                }
+            ],
+            "requestRoutingRules": [
+                {
+                    "Name": "ruleName",
+                    "properties": {
+                        "RuleType": "Basic",
+                        "httpListener": {
+                            "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', 'apgwtest156', 'appGatewayHttpListener')]"
+                        },
+                        "backendAddressPool": {
+                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'apgwtest156', 'appGatewayBackendPool')]"
+                        },
+                        "backendHttpSettings": {
+                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'apgwtest156', 'appGatewayBackendHttpSettings')]"
+                        }
+                    }
+                }
+            ],
+            "probes": [
+                    {
+                        "name": "http-hp",
+                        "properties":{
+                            "protocol": "Http",
+                            "host": "www.vecboss.com",
+                            "path": "/",
+                            "interval":30,
+                            "timeout":30,
+                            "unhealthyThreshold":3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "minServers":0,
+                            "match": {}
+                        }
+                    }
+                ],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [],
+                "privateLinkConfigurations": [],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "Detection",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0",
+                    "disabledRuleGroups": [],
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128,
+                    "fileUploadLimitInMb": 100
+                },
+                "enableHttp2": false
+        }
+    }
+    ],
+    "outputs": {}
+}
