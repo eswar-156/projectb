@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "stgname": {
+            "value": "stgeast12vm156" 
+        },
+        "location": {
+            "value": "Eastus" 
+        },
+        "stgskuname": {
+            "value": "Standard_LRS"
+        },
+        "pipname": {
+            "value": "pipeast12vm156" 
+        },
+        "piptype": {
+            "value": "Dynamic"
+        },
+        "pipdnsname": { 
+            "value": "pip1ice23east12vmdns156" 
+        },
+        "nsgname": {
+            "value": "nsgeast12vm156" 
+        },
+        "vnetname": {
+            "value": "east12vnet156" 
+        },
+        "addressspacerange": {
+            "value": "10.2.0.0/24" 
+        },
+        "subnet-1name": {
+            "value": "subnet-1eastvm" 
+        },
+        "subnet-1addressprefix": {
+            "value": "10.2.0.0/28" 
+        },
+        "nic name": {
+            "value": "niceast12vm156" 
+        },
+        "vm name": {
+            "value": "westeast12vm156" 
+        },
+        "admin user name": {
+            "value": "eswar" 
+        },
+        "admin user passwd": {
+            "value": "HAPPYboy@156" 
+        }
+    }
+}
